@@ -10,7 +10,7 @@ import apm from './apm'
 
 // RPC
 import Messenger, { providers } from '@aragon/messenger'
-import handlers from './rpc/handlers'
+import * as handlers from './rpc/handlers'
 
 // Utilities
 import { encodeCallScript } from './evmscript'
