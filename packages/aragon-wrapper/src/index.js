@@ -199,11 +199,10 @@ export default class Aragon {
 
     // Get the application proxy
     const proxy = this.apps
-      .map((apps) => apps.find(
-        (app) => app.codeAddress === proxyAddress)
-      )
+      .map(apps => apps.find(app => app.proxyAddress === proxyAddress))
       .map(
-        (app) => makeProxy(app.codeAddress, app.abi, this.web3)
+        app =>
+          app ? new this.web3.eth.Contract(app.abi, app.proxyAddress) : null
       )
 
     // Wrap requests with the application proxy
