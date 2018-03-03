@@ -36,6 +36,17 @@ export default class WindowMessage extends Provider {
    * @instance
    */
   send (payload) {
-    this.target.postMessage(payload, '*')
+    try {
+      this.target.postMessage(payload, '*')
+    } catch (err) {
+      if (err.name === 'DataCloneError') {
+        console.error(
+          'WindowMessage couldn’t send the payload:',
+          payload
+        )
+        return
+      }
+      throw err
+    }
   }
 }
