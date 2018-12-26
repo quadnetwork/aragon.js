@@ -3,6 +3,8 @@ import { defer } from 'rxjs/observable/defer'
 import { empty } from 'rxjs/observable/empty'
 import { fromPromise } from 'rxjs/observable/fromPromise'
 import { merge } from 'rxjs/observable/merge'
+import EventEmitter from 'events'
+import { ReplaySubject } from 'rxjs/Rx'
 
 export const AppProxyHandler = {
   get (target, name, receiver) {
@@ -19,12 +21,29 @@ export const AppProxyHandler = {
   }
 }
 
+export class NetworkAPI extends EventEmitter {
+  constructor (rpc) {
+    super()
+    this.rpc = rpc
+    this.observable = new ReplaySubject(1)
+    this.rpc.sendAndObserveResponses('network')
+      .pluck('result')
+      .do(value => { this.emit('update', value) })
+      .subscribe(this.observable)
+  }
+
+  get () {
+    return this.observable.toPromise()
+  }
+}
+
 /**
  * A JavaScript proxy that wraps RPC calls to the wrapper.
  */
 export class AppProxy {
   constructor (provider) {
     this.rpc = new Messenger(provider)
+    this.network = new NetworkAPI(this.rpc)
   }
 
   /**
@@ -35,17 +54,6 @@ export class AppProxy {
   accounts () {
     return this.rpc.sendAndObserveResponses(
       'accounts'
-    ).pluck('result')
-  }
-
-  /**
-   * Get the network the app is connected to over time.
-   *
-   * @return {Observable}
-   */
-  network () {
-    return this.rpc.sendAndObserveResponses(
-      'network'
     ).pluck('result')
   }
 
